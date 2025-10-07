@@ -63,10 +63,67 @@
         </section>
     </main>
 
+    <!-- Registration Modal (simple example) -->
+    <div id="registerModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5);">
+        <div style="background:#fff; margin:10% auto; padding:2em; width:300px; border-radius:8px;">
+            <h2>Registrar Cuenta</h2>
+            <form id="registerForm">
+                <label for="username">Usuario:</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Contraseña:</label>
+                <input type="password" id="password" name="password" required>
+                <button type="submit">Registrar</button>
+                <button type="button" onclick="closeRegisterModal()">Cancelar</button>
+            </form>
+            <div id="registerMsg"></div>
+        </div>
+    </div>
+
     <footer class="site-footer">
         <div class="container">
             <p>&copy; 2025 Seguros Grupo Amarillo. Todos los derechos reservados.</p>
         </div>
     </footer>
-</body>
-</html>
+<script type="module">
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+const supabaseUrl =  'https://vhkubknqknvqmhpgrljn.supabase.co'
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoa3Via25xa252cW1ocGdybGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNjg5NjUsImV4cCI6MjA3NDc0NDk2NX0.Mi0a3OqjFWkKoMqhAEfZyOaruoXeesFiaGavafk5yUQ'//'YOUR_SUPABASE_KEY' // Replace with your anon/public key
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Show registration modal when needed
+document.querySelectorAll('.btn-primary').forEach(btn => {
+  btn.addEventListener('click', function(e) {
+    if (btn.textContent.includes('Registrar')) {
+      e.preventDefault();
+      document.getElementById('registerModal').style.display = 'block';
+    }
+  });
+});
+
+window.closeRegisterModal = function() {
+  document.getElementById('registerModal').style.display = 'none';
+  document.getElementById('registerMsg').textContent = '';
+}
+
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const usuario = document.getElementById('username').value;
+  const contraseña = document.getElementById('password').value;
+
+  // For demo purposes: using a fixed IdAsegurado until you link it dynamically
+  const IdAsegurado = Math.floor(Math.random() * 1000000); // or from a real "Asegurado" record
+
+  const { data, error } = await supabase
+    .from('Cuenta')
+    .insert([{ usuario, contraseña, IdAsegurado }]);
+
+  if (error) {
+    document.getElementById('registerMsg').textContent = '❌ Error: ' + error.message;
+  } else {
+    document.getElementById('registerMsg').textContent = '✅ Cuenta registrada exitosamente!';
+    setTimeout(closeRegisterModal, 1500);
+  }
+});
+</script>
