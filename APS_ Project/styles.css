@@ -1038,3 +1038,75 @@ p {
     border-radius: 5px;
     color: #8899b3;
 }
+
+body.panel-empleado {
+    /* Usamos 'background' para sobreescribir el gradiente original.
+       Esto anula el linear-gradient y aplica un color sólido. */
+    background: #e6efff;
+}
+
+
+/* ===================================
+   Panel Usuario
+   =================================== */
+
+/* Contenedor principal que usa Flexbox para los dos paneles */
+.user-container {
+    display: flex; /* Flexbox -> Pone los paneles uno al lado del otro */
+    gap: 2rem;     /* Espacio entre los dos paneles */
+    padding: 2rem; /* Espacio alrededor de los paneles */
+    align-items: flex-start; /* Alinea los paneles en la parte superior */
+}
+
+/* Estilo para ambos paneles (visualización y acciones) */
+.panel-user-visualizacion,
+.panel-user-acciones {
+    background-color: #0c1a32; /* color fondo */
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #2a3b5c;
+}
+
+/* Panel de visualización más grande */
+.panel-user-visualizacion {
+    flex: 2; /* Ocupará 2/3 del espacio */
+}
+
+/* Y el panel de acciones más pequeño */
+.panel-user-acciones {
+    flex: 1; /* Ocupará 1/3 del espacio */
+}
+
+/* Títulos dentro de los paneles */
+.panel-user-visualizacion h2,
+.panel-user-acciones h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #2a3b5c;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Estilo para el contenedor de los botones de acción */
+.panel-user-acciones .cta-group {
+    display: flex;
+    flex-direction: column; /* Apila los botones verticalmente */
+    gap: 1rem;              /* Espacio entre cada botón */
+}
+
+/* Aseguramos que los botones ocupen todo el ancho del panel de acciones */
+.panel-user-acciones .btn {
+    width: 100%;
+    text-align: center;
+}
+
+/* Placeholder para la tabla (puedes borrarlo cuando tengas la tabla real) */
+.tabla-user-placeholder {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    border: 2px dashed #2a3b5c;
+    border-radius: 5px;
+    color: #8899b3;
+}
