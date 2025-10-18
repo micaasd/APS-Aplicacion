@@ -15,7 +15,7 @@ const errorMessageSpan = document.getElementById('password-error');
 
 // 3. Escuchar el envío del formulario
 if (loginForm) {
-    console.log("Script cargado y formulario encontrado. Listo para iniciar sesión."); // Mensaje 1
+    console.log("Script cargado y formulario encontrado. Listo para iniciar sesión.");
 
     loginForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -24,28 +24,44 @@ if (loginForm) {
         const username = usernameInput.value.trim();
         const password = passwordInput.value.trim();
 
-        // Mensaje 2: Nos muestra qué datos estamos a punto de enviar
         console.log(`Intentando validar -> Usuario: "${username}", Contraseña: "${password}"`);
 
         try {
+            // La consulta sigue siendo la misma, ya que el '*' selecciona todas las columnas, incluyendo 'role'.
             const { data, error } = await supabase
                 .from('Cuenta')
-                .select('*')
+                .select('*') 
                 .eq('usuario', username)
                 .eq('password', password);
 
             if (error) {
-                // Mensaje 3: Si hay un error de Supabase, lo veremos aquí
                 console.error("Error devuelto por Supabase:", error.message);
                 throw error;
             }
 
-            // Mensaje 4: Veremos qué nos devolvió la base de datos
             console.log("Respuesta de Supabase (data):", data);
 
             if (data && data.length > 0) {
-                console.log("¡Éxito! Usuario y contraseña coinciden. Redirigiendo...");
-                window.location.href = 'panelEmpleado.html';
+                const user = data[0]; // El primer (y único) usuario coincidente
+                
+                const userRole = user.role; 
+                let redirectUrl;
+
+                if (userRole === 'admin') {
+                    console.log("¡Éxito! Rol 'admin'. Redirigiendo a panelEmpleado.html...");
+                    redirectUrl = 'panelEmpleado.html';
+                } else if (userRole === 'user') {
+                    console.log("¡Éxito! Rol 'user'. Redirigiendo a panelUsuario.html...");
+                    redirectUrl = 'panelUsuario.html'; 
+                } else {
+                    // Si el rol no es ni 'admin' ni 'user', mostramos un error y terminamos
+                    console.warn(`Rol de usuario no válido (${userRole}).`);
+                    errorMessageSpan.textContent = 'Acceso denegado. Rol de usuario no válido.';
+                    return; 
+                }
+                
+                window.location.href = redirectUrl;
+
             } else {
                 console.log("Fallo: La consulta no devolvió ningún usuario coincidente.");
                 errorMessageSpan.textContent = 'Usuario o contraseña incorrectos.';
