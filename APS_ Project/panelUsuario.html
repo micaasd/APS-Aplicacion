@@ -38,9 +38,9 @@
         <div class="panel-user-acciones">
             <h2>Acciones</h2>
             <div class="cta-group">
-                <a href="tiposSeguros.html" class="btn btn-secondary">Solicitar Seguro</a>
-                <a href="agregarSeguro.html" class="btn btn-secondary">Solicitar baja Seguro</a>
-                <a href="eliminarSeguro.html" class="btn btn-secondary">Modificar Seguro</a>
+                <button id="userSolicitar" class="btn btn-primary">Solicitar Seguro</button>
+                <button id="userBaja" class="btn btn-secondary">Solicitar baja Seguro</button>
+                <button id="userModificar" class="btn btn-secondary">Modificar Seguro</button>
             </div>
         </div>
 
@@ -52,5 +52,96 @@
             <p>&copy; 2025 Seguros Grupo Amarillo. Todos los derechos reservados.</p>
         </div>
     </footer>
+    <!-- User modal for solicitar / modificar / baja -->
+    <div id="userSeguroModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5);">
+        <div style="background:#fff; margin:6% auto; padding:1.5em; width:420px; max-width:95%; border-radius:8px;">
+            <h3 id="userModalTitle">Solicitar Seguro</h3>
+            <form id="userFormSeguro">
+                <input type="hidden" id="userIdSeguro">
+                <label for="userAsegurado">DNI Asegurado:</label>
+                <input type="number" id="userAsegurado" required>
+                <label for="userNroPoliza">Nro Póliza:</label>
+                <input type="number" id="userNroPoliza">
+                <label for="userFechaFin">Fecha Fin (opcional):</label>
+                <input type="datetime-local" id="userFechaFin">
+                <div style="margin-top:1em; display:flex; gap:.5em;">
+                    <button type="submit" class="btn btn-primary">Enviar</button>
+                    <button type="button" id="userCancelBtn" class="btn">Cancelar</button>
+                </div>
+            </form>
+            <div id="userModalMsg" style="margin-top:.5em;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="seguros.js"></script>
+    <script>
+    //  panelUsuario
+    const userSolicitar = document.getElementById('userSolicitar');
+    const userBaja = document.getElementById('userBaja');
+    const userModificar = document.getElementById('userModificar');
+    const userModal = document.getElementById('userSeguroModal');
+    const userForm = document.getElementById('userFormSeguro');
+    const userCancelBtn = document.getElementById('userCancelBtn');
+    const userModalTitle = document.getElementById('userModalTitle');
+    const userModalMsg = document.getElementById('userModalMsg');
+
+    userSolicitar.addEventListener('click', () => {
+        userForm.reset();
+        userModalTitle.textContent = 'Solicitar Seguro';
+        userModal.style.display = 'block';
+    });
+
+    userModificar.addEventListener('click', () => {
+        userForm.reset();
+        userModalTitle.textContent = 'Modificar Seguro (indicar id en Nro Póliza o pedir ID al admin)';
+        userModal.style.display = 'block';
+    });
+
+    userBaja.addEventListener('click', () => {
+        const id = prompt('Ingrese el idSeguro que desea dar de baja:');
+        if (!id) return;
+        if (!confirm('Confirma la baja del seguro ' + id + '?')) return;
+        (async () => {
+            try {
+                await window.segurosAPI.deleteSeguro(parseInt(id,10));
+                alert('Solicitud de baja procesada (el seguro fue eliminado).');
+            } catch (err) {
+                alert('Error al solicitar baja: ' + err.message);
+            }
+        })();
+    });
+
+    userCancelBtn.addEventListener('click', () => {
+        userModal.style.display = 'none';
+        userModalMsg.textContent = '';
+    });
+
+    userForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const asegurado = parseInt(document.getElementById('userAsegurado').value,10);
+        const nroPoliza = document.getElementById('userNroPoliza').value ? parseInt(document.getElementById('userNroPoliza').value,10) : null;
+        const fechaFinVal = document.getElementById('userFechaFin').value;
+        const fechaFin = fechaFinVal ? new Date(fechaFinVal).toISOString() : null;
+        userModalMsg.textContent = 'Enviando...';
+        try {
+            if (userModalTitle.textContent.startsWith('Modificar')) {
+                // For simplicity require the user to enter the id in the Nro Póliza field
+                const idToUpdate = parseInt(prompt('Ingrese idSeguro a modificar:'),10);
+                if (!idToUpdate) throw new Error('id invalido');
+                await window.segurosAPI.updateSeguro(idToUpdate, { asegurado, nroPoliza, fechaFin });
+                userModalMsg.textContent = 'Modificación enviada';
+            } else {
+                const res = await window.segurosAPI.createSolicitud({ asegurado, nroPoliza, fechaFin });
+                console.debug('[UI] createSolicitud response', res);
+                userModalMsg.textContent = 'Solicitud de seguro enviada';
+            }
+            setTimeout(() => { userModal.style.display = 'none'; userModalMsg.textContent = ''; }, 900);
+        } catch (err) {
+            userModalMsg.textContent = 'Error: ' + err.message;
+            userModalMsg.style.color = 'crimson';
+        }
+    });
+    </script>
 </body>
 </html>

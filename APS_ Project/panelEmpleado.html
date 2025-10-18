@@ -30,19 +30,41 @@
         
         <div class="panel-visualizacion">
             <h2>Seguros Activos</h2>
-            <div class="tabla-placeholder">
-                <p>Aquí se mostrará la tabla con los seguros cargados desde la base de datos.</p>
+            <div class="tabla-container">
+                <table id="segurosTable" class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>DNI Asegurado</th>
+                            <th>Nro Póliza</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- filas generadas por JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel-solicitudes" style="margin-top:2rem;">
+            <h2>Solicitudes Pendientes</h2>
+            <div id="solicitudesContainer">
+                <p>Cargando solicitudes...</p>
             </div>
         </div>
 
         <div class="panel-acciones">
             <h2>Acciones</h2>
-            <div class="cta-group">
-                <a href="tiposSeguros.html" class="btn btn-secondary">Actualizar Seguros</a>
-                <a href="agregarSeguro.html" class="btn btn-secondary">Agregar Seguro</a>
-                <a href="eliminarSeguro.html" class="btn btn-secondary">Eliminar Seguro</a>
-                <a href="modificarSeguro.html" class="btn btn-secondary">Modificar Seguro</a>
-            </div>
+                <div class="cta-group">
+                    <button id="btnRefresh" class="btn btn-secondary">Refrescar</button>
+                    <button id="btnAddSeguro" class="btn btn-primary">Agregar Seguro</button>
+                    <button id="btnUpdateAll" class="btn btn-secondary">Actualizar Seguros</button>
+                    <button id="btnSelectDelete" class="btn btn-danger">Eliminar Seguro</button>
+                    <button id="btnSelectModify" class="btn btn-secondary">Modificar Seguro</button>
+                </div>
         </div>
 
     </div>
@@ -54,5 +76,302 @@
             <p>&copy; 2025 Seguros Grupo Amarillo. Todos los derechos reservados.</p>
         </div>
     </footer>
+    <!-- Add/Edit Modal -->
+    <div id="seguroModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5);">
+        <div style="background:#fff; margin:6% auto; padding:1.5em; width:420px; max-width:95%; border-radius:8px;">
+            <h3 id="modalTitle">Agregar Seguro</h3>
+            <form id="formSeguro">
+                <input type="hidden" id="idSeguro">
+                <label for="asegurado">DNI Asegurado:</label>
+                <input type="number" id="asegurado" required>
+                <label for="nroPoliza">Nro Póliza:</label>
+                <input type="number" id="nroPoliza">
+                <label for="fechaFin">Fecha Fin (opcional):</label>
+                <input type="datetime-local" id="fechaFin">
+                <div style="margin-top:1em; display:flex; gap:.5em;">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" id="cancelBtn" class="btn">Cancelar</button>
+                </div>
+            </form>
+            <div id="modalMsg" style="margin-top:.5em;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="seguros.js"></script>
+    <script>
+    // UI wiring for panelEmpleado
+    const segurosTableBody = document.querySelector('#segurosTable tbody');
+    const btnRefresh = document.getElementById('btnRefresh');
+    const btnAddSeguro = document.getElementById('btnAddSeguro');
+    const seguroModal = document.getElementById('seguroModal');
+    const formSeguro = document.getElementById('formSeguro');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMsg = document.getElementById('modalMsg');
+
+    async function loadSeguros() {
+        try {
+            segurosTableBody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+            const data = await window.segurosAPI.fetchSeguros();
+            if (!data || data.length === 0) {
+                segurosTableBody.innerHTML = '<tr><td colspan="6">No hay seguros.</td></tr>';
+                return;
+            }
+            segurosTableBody.innerHTML = '';
+            data.forEach(s => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${s.idSeguro}</td>
+                    <td>${s.asegurado}</td>
+                    <td>${s.nroPoliza ?? ''}</td>
+                    <td>${new Date(s.fechaInicio).toLocaleString()}</td>
+                    <td>${s.fechaFin ? new Date(s.fechaFin).toLocaleString() : ''}</td>
+                    <td>
+                        <button class="btn btn-small" data-id="${s.idSeguro}" data-action="edit">Editar</button>
+                        <button class="btn btn-small btn-danger" data-id="${s.idSeguro}" data-action="delete">Eliminar</button>
+                    </td>
+                `;
+                segurosTableBody.appendChild(tr);
+            });
+        } catch (err) {
+            segurosTableBody.innerHTML = `<tr><td colspan="6">Error cargando seguros: ${err.message}</td></tr>`;
+        }
+    }
+
+    btnRefresh.addEventListener('click', loadSeguros);
+
+    btnAddSeguro.addEventListener('click', () => {
+        formSeguro.reset();
+        modalTitle.textContent = 'Agregar Seguro';
+        document.getElementById('idSeguro').value = '';
+        seguroModal.style.display = 'block';
+    });
+
+    cancelBtn.addEventListener('click', () => {
+        seguroModal.style.display = 'none';
+        modalMsg.textContent = '';
+    });
+
+    segurosTableBody.addEventListener('click', async (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        if (action === 'edit') {
+           
+            try {
+                const seguros = await window.segurosAPI.fetchSeguros();
+                const s = seguros.find(x => String(x.idSeguro) === String(id));
+                if (!s) throw new Error('Seguro no encontrado');
+                document.getElementById('idSeguro').value = s.idSeguro;
+                document.getElementById('asegurado').value = s.asegurado;
+                document.getElementById('nroPoliza').value = s.nroPoliza ?? '';
+                document.getElementById('fechaFin').value = s.fechaFin ? new Date(s.fechaFin).toISOString().slice(0,16) : '';
+                modalTitle.textContent = 'Editar Seguro ' + s.idSeguro;
+                seguroModal.style.display = 'block';
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        } else if (action === 'delete') {
+            if (!confirm('¿Confirma eliminar este seguro?')) return;
+            try {
+                const numericId = parseInt(id, 10);
+                console.debug('[UI] inline delete id', numericId);
+                const res = await window.segurosAPI.deleteSeguro(numericId);
+                console.debug('[UI] inline delete result', res);
+                await loadSeguros();
+                alert('Seguro eliminado');
+            } catch (err) {
+                console.error('Error eliminando:', err);
+                const details = err && err.message ? err.message : JSON.stringify(err);
+                modalMsg.textContent = 'Error eliminando: ' + details;
+                alert('Error eliminando: ' + details);
+            }
+        }
+    });
+
+    formSeguro.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('idSeguro').value;
+        const asegurado = parseInt(document.getElementById('asegurado').value, 10);
+        const nroPoliza = document.getElementById('nroPoliza').value ? parseInt(document.getElementById('nroPoliza').value,10) : null;
+        const fechaFinVal = document.getElementById('fechaFin').value;
+        const fechaFin = fechaFinVal ? new Date(fechaFinVal).toISOString() : null;
+        modalMsg.textContent = 'Guardando...';
+        try {
+            if (id) {
+                const res = await window.segurosAPI.updateSeguro(parseInt(id,10), { asegurado, nroPoliza, fechaFin });
+                console.debug('[UI] updateSeguro response', res);
+                modalMsg.textContent = 'Actualizado correctamente';
+            } else {
+                const res = await window.segurosAPI.createSeguro({ asegurado, nroPoliza, fechaFin });
+                console.debug('[UI] createSeguro response', res);
+                modalMsg.textContent = 'Creado correctamente';
+            }
+            setTimeout(async () => {
+                seguroModal.style.display = 'none';
+                modalMsg.textContent = '';
+                await loadSeguros();
+            }, 900);
+        } catch (err) {
+            modalMsg.textContent = 'Error: ' + err.message;
+            modalMsg.style.color = 'crimson';
+        }
+    });
+
+    
+    loadSeguros();
+    
+    
+    const selectModalHtml = `
+        <div style="background:#fff; margin:8% auto; padding:1em; width:420px; max-width:95%; border-radius:8px;">
+            <h3 id="selectModalTitle">Seleccionar Seguro</h3>
+            <div>
+                <label for="selectSeguro">Seguro:</label>
+                <select id="selectSeguro" style="width:100%; padding:.4em; margin-bottom:.6em;"></select>
+            </div>
+            <div style="display:flex; gap:.5em; justify-content:flex-end;">
+                <button id="selectCancelBtn" class="btn">Cancelar</button>
+                <button id="selectConfirmBtn" class="btn btn-primary">Confirmar</button>
+            </div>
+            <div id="selectModalMsg" style="margin-top:.5em;"></div>
+        </div>`;
+
+    
+    const selectModalContainer = document.createElement('div');
+    selectModalContainer.id = 'selectSeguroModal';
+    selectModalContainer.style = 'display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5);';
+    selectModalContainer.innerHTML = selectModalHtml;
+    document.body.appendChild(selectModalContainer);
+
+    const btnSelectDelete = document.getElementById('btnSelectDelete');
+    const btnSelectModify = document.getElementById('btnSelectModify');
+    const btnUpdateAll = document.getElementById('btnUpdateAll');
+
+    async function populateSelectSeguro() {
+        const sel = document.getElementById('selectSeguro');
+        sel.innerHTML = '<option value="">Cargando...</option>';
+        try {
+            const seguros = await window.segurosAPI.fetchSeguros();
+            if (!seguros || seguros.length === 0) {
+                sel.innerHTML = '<option value="">No hay seguros</option>';
+                return [];
+            }
+            sel.innerHTML = '';
+            seguros.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.idSeguro;
+                opt.textContent = `${s.idSeguro} — DNI:${s.asegurado} — Pol:${s.nroPoliza ?? ''}`;
+                sel.appendChild(opt);
+            });
+            return seguros;
+        } catch (err) {
+            sel.innerHTML = `<option value="">Error: ${err.message}</option>`;
+            return [];
+        }
+    }
+
+    
+    function openSelectModal(mode) {
+        const container = document.getElementById('selectSeguroModal');
+        const title = document.getElementById('selectModalTitle');
+        const confirmBtn = document.getElementById('selectConfirmBtn');
+        const cancelBtn = document.getElementById('selectCancelBtn');
+        const msg = document.getElementById('selectModalMsg');
+        title.textContent = mode === 'delete' ? 'Eliminar Seguro' : 'Modificar Seguro';
+        confirmBtn.textContent = mode === 'delete' ? 'Eliminar' : 'Modificar';
+        msg.textContent = '';
+        populateSelectSeguro();
+        container.style.display = 'block';
+
+        cancelBtn.onclick = () => { container.style.display = 'none'; };
+        confirmBtn.onclick = async () => {
+            const sel = document.getElementById('selectSeguro');
+            const id = sel.value;
+            if (!id) { msg.textContent = 'Seleccione un seguro.'; return; }
+            if (mode === 'delete') {
+                if (!confirm('Confirma eliminar el seguro ' + id + '?')) return;
+                try {
+                    const numericId = parseInt(id,10);
+                    console.debug('[UI] modal delete id', numericId);
+                    const res = await window.segurosAPI.deleteSeguro(numericId);
+                    console.debug('[UI] modal delete result', res);
+                    msg.textContent = 'Eliminado correctamente.';
+                    await loadSeguros();
+                    setTimeout(() => { container.style.display = 'none'; }, 700);
+                } catch (err) { console.error(err); msg.textContent = 'Error: ' + (err.message || JSON.stringify(err)); }
+            } else {
+                // load seleccion into edit modal
+                try {
+                    const seguros = await window.segurosAPI.fetchSeguros();
+                    const s = seguros.find(x => String(x.idSeguro) === String(id));
+                    if (!s) throw new Error('Seguro no encontrado');
+                    document.getElementById('idSeguro').value = s.idSeguro;
+                    document.getElementById('asegurado').value = s.asegurado;
+                    document.getElementById('nroPoliza').value = s.nroPoliza ?? '';
+                    document.getElementById('fechaFin').value = s.fechaFin ? new Date(s.fechaFin).toISOString().slice(0,16) : '';
+                    modalTitle.textContent = 'Editar Seguro ' + s.idSeguro;
+                    container.style.display = 'none';
+                    seguroModal.style.display = 'block';
+                } catch (err) { msg.textContent = 'Error: ' + err.message; }
+            }
+        };
+    }
+
+    btnSelectDelete.addEventListener('click', () => openSelectModal('delete'));
+    btnSelectModify.addEventListener('click', () => openSelectModal('modify'));
+    btnUpdateAll.addEventListener('click', async () => { await loadSeguros(); alert('Actualizado'); });
+
+    //Manejo de solicitudes (futuro)
+    const solicitudesContainer = document.getElementById('solicitudesContainer');
+
+    async function loadSolicitudes() {
+        try {
+            const solicitudes = await window.segurosAPI.fetchSolicitudes();
+            if (!solicitudes || solicitudes.length === 0) {
+                solicitudesContainer.innerHTML = '<p>No hay solicitudes pendientes.</p>';
+                return;
+            }
+            const list = document.createElement('ul');
+            list.style.listStyle = 'none';
+            list.style.padding = '0';
+            solicitudes.forEach(s => {
+                const li = document.createElement('li');
+                li.style.padding = '.6em 0';
+                li.style.display = 'flex';
+                li.style.justifyContent = 'space-between';
+                li.style.alignItems = 'center';
+                li.innerHTML = `<div>Solicitud #${s.id} — DNI:${s.asegurado} — Pol:${s.nroPoliza ?? ''} — FechaFin:${s.fechaFin ?? ''}</div>`;
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-primary';
+                btn.textContent = 'Activar';
+                btn.onclick = async () => {
+                    try {
+                        // create real seguro
+                        await window.segurosAPI.createSeguro({ asegurado: s.asegurado, nroPoliza: s.nroPoliza, fechaFin: s.fechaFin });
+                        // delete solicitud
+                        await window.segurosAPI.deleteSolicitud(s.id);
+                        await loadSeguros();
+                        await loadSolicitudes();
+                        alert('Solicitud activada: póliza agregada.');
+                    } catch (err) {
+                        console.error('Error activando solicitud', err);
+                        alert('Error activando: ' + (err.message || JSON.stringify(err)));
+                    }
+                };
+                li.appendChild(btn);
+                list.appendChild(li);
+            });
+            solicitudesContainer.innerHTML = '';
+            solicitudesContainer.appendChild(list);
+        } catch (err) {
+            solicitudesContainer.innerHTML = '<p>Error cargando solicitudes: ' + (err.message || JSON.stringify(err)) + '</p>';
+        }
+    }
+
+    // load solicitudes initially and when seguros list updates
+    loadSolicitudes();
+    </script>
 </body>
 </html>

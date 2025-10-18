@@ -281,8 +281,10 @@ p {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-  color: white;
+  /* Strong contrast primary: bright cyan -> deep teal with white text */
+  background: linear-gradient(135deg, #0ea5c9, #084a62);
+  color: #ffffff;
+  border: 1px solid rgba(255,255,255,0.06);
 }
 
 .btn-primary:hover,
@@ -293,17 +295,51 @@ p {
 }
 
 .btn-secondary {
-  background: transparent;
-  color: var(--color-primary-light);
-  border: 2px solid var(--color-primary);
+  /* Secondary uses high-contrast light text on subtle translucent bg */
+  background: rgba(255,255,255,0.03);
+  color: var(--color-text-primary);
+  border: 2px solid rgba(255,255,255,0.08);
 }
 
 .btn-secondary:hover,
 .btn-secondary:focus {
   background: var(--color-primary);
-  color: white;
+  color: #fff;
   transform: translateY(-3px);
   outline: none;
+}
+
+/* Danger button for destructive actions: high contrast red */
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444, #b91c1c);
+  color: #fff;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+.btn-danger:hover,
+.btn-danger:focus {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(185,28,28,0.25);
+  outline: none;
+}
+
+/* Small buttons used in tables and inline actions */
+.btn-small {
+  padding: .35rem .6rem;
+  font-size: .9rem;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  color: var(--color-text-primary);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.btn-small.btn-danger {
+  background: transparent;
+  color: #ffb4b4;
+  border-color: rgba(239,68,68,0.15);
+}
+.btn-small:hover,
+.btn-small:focus {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
 }
 
 /* ===================================
