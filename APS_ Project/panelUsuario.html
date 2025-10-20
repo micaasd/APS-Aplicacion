@@ -57,91 +57,242 @@
         <div style="background:#fff; margin:6% auto; padding:1.5em; width:420px; max-width:95%; border-radius:8px;">
             <h3 id="userModalTitle">Solicitar Seguro</h3>
             <form id="userFormSeguro">
-                <input type="hidden" id="userIdSeguro">
-                <label for="userAsegurado">DNI Asegurado:</label>
-                <input type="number" id="userAsegurado" required>
-                <label for="userNroPoliza">Nro Póliza:</label>
-                <input type="number" id="userNroPoliza">
-                <label for="userFechaFin">Fecha Fin (opcional):</label>
-                <input type="datetime-local" id="userFechaFin">
-                <div style="margin-top:1em; display:flex; gap:.5em;">
-                    <button type="submit" class="btn btn-primary">Enviar</button>
-                    <button type="button" id="userCancelBtn" class="btn">Cancelar</button>
-                </div>
-            </form>
-            <div id="userModalMsg" style="margin-top:.5em;"></div>
-        </div>
+               <!-- === FORMULARIO: Solicitar Seguro de Auto (texto simple) === -->
+    <!-- === Paso 0: Selector de tipo de seguro === -->
+    <div id="stepSelect" style="display:grid; gap:.75rem">
+    <p>Elegí qué querés asegurar:</p>
+    <button type="button" id="btnAsegurarAuto" class="btn btn-primary">Asegurar auto</button>
+    <button type="button" id="btnAsegurarHogar" class="btn btn-secondary">Asegurar hogar</button>
+    <button type="button" id="btnAsegurarAP" class="btn btn-secondary">Accidentes personales</button>
+
+    <div style="margin-top:.5rem">
+        <button type="button" id="userCancelBtn" class="btn">Cancelar</button>
+    </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="seguros.js"></script>
-    <script>
-    //  panelUsuario
-    const userSolicitar = document.getElementById('userSolicitar');
-    const userBaja = document.getElementById('userBaja');
-    const userModificar = document.getElementById('userModificar');
-    const userModal = document.getElementById('userSeguroModal');
-    const userForm = document.getElementById('userFormSeguro');
-    const userCancelBtn = document.getElementById('userCancelBtn');
-    const userModalTitle = document.getElementById('userModalTitle');
-    const userModalMsg = document.getElementById('userModalMsg');
+    <!-- === Paso 1: Formulario Auto (texto) === -->
+    <div id="stepAuto" style="display:none; gap:.75rem">
+    <label>
+        Año del auto
+        <input type="text" id="autoAnio" required placeholder="Ej: 2016">
+    </label>
 
-    userSolicitar.addEventListener('click', () => {
-        userForm.reset();
-        userModalTitle.textContent = 'Solicitar Seguro';
-        userModal.style.display = 'block';
+    <label>
+        Marca
+        <input type="text" id="autoMarca" required placeholder="Ej: Fiat">
+    </label>
+
+    <label>
+        Modelo
+        <input type="text" id="autoModelo" required placeholder="Ej: Palio">
+    </label>
+
+    <label>
+        Versión
+        <input type="text" id="autoVersion" required placeholder="Ej: 1.4 5p attractive">
+    </label>
+
+    <fieldset style="border:0; padding:0; margin:0">
+        <legend style="font-weight:600">¿Tiene GNC?</legend>
+        <label style="display:inline-flex; align-items:center; gap:.35rem; margin-right:1rem">
+        <input type="radio" name="autoGNC" value="SI" required> SI
+        </label>
+        <label style="display:inline-flex; align-items:center; gap:.35rem">
+        <input type="radio" name="autoGNC" value="NO" required> NO
+        </label>
+    </fieldset>
+
+    <label style="display:flex; gap:.5rem; align-items:flex-start">
+        <input type="checkbox" id="autoUsoParticular" checked>
+        <span>Mi auto es de uso particular y funciona correctamente.</span>
+    </label>
+
+    <div style="margin-top:.5rem; display:flex; gap:.5rem">
+        <button type="button" id="btnAseguradoForm" class="btn btn-primary btn-sm">Siguiente</button>
+        <button type="button" id="btnVolverSelector" class="btn">Volver</button>
+        <button type="button" id="userCancelBtn2" class="btn">Cancelar</button>
+    </div>
+    </div>
+      <!-- === Paso 2: Formulario general del Asegurado === -->
+    <div id="stepAsegurado" style="display:none; gap:.75rem">
+      <h3 style="margin:0 0 .25rem 0; opacity:.85">Datos del asegurado</h3>
+
+      <label>
+        DNI
+        <input type="text" id="asegDni" placeholder="Ej: 12345678" required>
+      </label>
+
+      <label>
+        Nombre
+        <input type="text" id="asegNombre" placeholder="Ej: Juan" required>
+      </label>
+
+      <label>
+        Apellido
+        <input type="text" id="asegApellido" placeholder="Ej: Pérez" required>
+      </label>
+
+      <label>
+        Teléfono
+        <input type="text" id="asegTelefono" placeholder="Ej: 11 1234 5678" required>
+      </label>
+
+      <label>
+        Dirección
+        <input type="text" id="asegDireccion" placeholder="Calle 123, Ciudad" required>
+      </label>
+
+    <div style="margin-top:.5rem; display:flex; gap:.5rem; flex-wrap:wrap">
+      <button type="submit" class="btn btn-primary btn-sm">Confirmar</button>
+      <button type="button" id="btnVolverAuto" class="btn btn-sm">Volver</button>
+      <button type="button" id="userCancelBtn3" class="btn btn-sm">Cancelar</button>
+    </div>
+    </div>
+          
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="seguros.js"></script>
+ <script>
+  // --- refs existentes (dejá los que ya tengas) ---
+  const modal = document.getElementById('userSeguroModal');
+  const title = document.getElementById('userModalTitle');
+  const form  = document.getElementById('userFormSeguro');
+
+  // pasos
+  const stepSelect   = document.getElementById('stepSelect');
+  const stepAuto     = document.getElementById('stepAuto');
+  const stepAseg     = document.getElementById('stepAsegurado');
+
+  // botones selector
+  const btnAuto      = document.getElementById('btnAsegurarAuto');
+  const btnCancel0   = document.getElementById('userCancelBtn');
+
+  // botones auto
+  const btnVolverSel = document.getElementById('btnVolverSelector');
+  const btnCancel1   = document.getElementById('userCancelBtn2');
+  const btnAsegurado = document.getElementById('btnAseguradoForm');
+
+
+  // botones asegurado
+  const btnVolverAuto = document.getElementById('btnVolverAuto');
+  const btnCancel2    = document.getElementById('userCancelBtn3');
+
+  // helpers de vista
+  function showSelector() {
+    title.textContent = 'Solicitar Seguro';
+    stepSelect.style.display = 'grid';
+    stepAuto.style.display   = 'none';
+    stepAseg.style.display   = 'none';
+  }
+  function showAutoForm() {
+    title.textContent = 'Asegurar auto';
+    stepSelect.style.display = 'none';
+    stepAuto.style.display   = 'grid';
+    stepAseg.style.display   = 'none';
+  }
+  function showAseguradoForm() {
+    title.textContent = 'Datos del asegurado';
+    stepSelect.style.display = 'none';
+    stepAuto.style.display   = 'none';
+    stepAseg.style.display   = 'grid';
+  }
+  function openModal() { showSelector(); form.reset?.(); modal.style.display = 'block'; }
+  function closeModal() { modal.style.display = 'none'; }
+
+  // navegación
+  document.getElementById('userSolicitar').addEventListener('click', openModal);
+  btnAuto.addEventListener('click', showAutoForm);
+  btnVolverSel.addEventListener('click', showSelector);
+  btnCancel0.addEventListener('click', closeModal);
+  btnCancel1.addEventListener('click', closeModal);
+
+  // Paso 2: volver/cancelar
+  btnVolverAuto.addEventListener('click', showAutoForm);
+  btnCancel2.addEventListener('click', closeModal);
+
+form.addEventListener('submit', async (e) => {
+  if (stepAseg.style.display === 'none') return;
+  e.preventDefault();
+
+  // 1) Asegurado (del Paso 2)
+  const asegurado = {
+    DNI:       document.getElementById('asegDni').value.trim(),
+    nombre:    document.getElementById('asegNombre').value.trim(),
+    apellido:  document.getElementById('asegApellido').value.trim(),
+    telefono:  document.getElementById('asegTelefono').value.trim(),
+    direccion: document.getElementById('asegDireccion').value.trim(),
+  };
+  if (!asegurado.DNI || !asegurado.nombre || !asegurado.apellido || !asegurado.telefono || !asegurado.direccion) {
+    alert('Completá DNI, nombre, apellido, teléfono y dirección.');
+    return;
+  }
+
+  // 2) Auto (del Paso 1) guardado en dataset (ya lo hacíamos en avanzarAsegurado)
+  const auto = JSON.parse(form.dataset.autoPayload || '{}');
+  if (!auto.anio) {
+    alert('Faltan los datos del auto. Volvé al Paso Auto.');
+    return;
+  }
+
+  // 3) (opcional) nro de póliza y monto asegurado si los querés definir acá
+  const nroPoliza = crypto.randomUUID().slice(0, 8).toUpperCase(); // demo de póliza
+  const fechaFin = null;             // podés setear una fecha si querés
+  const montoAsegurado = null;       // si después lo pedís en el UI, pasalo acá
+
+  const btn = form.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Creando...';
+
+  try {
+    const result = await window.segurosAPI.asegurarAuto({
+      asegurado,
+      auto,
+      nroPoliza,
+      fechaFin,
+      montoAsegurado,
     });
 
-    userModificar.addEventListener('click', () => {
-        userForm.reset();
-        userModalTitle.textContent = 'Modificar Seguro (indicar id en Nro Póliza o pedir ID al admin)';
-        userModal.style.display = 'block';
-    });
+    alert(`¡Listo! Seguro #${result.seguro.idSeguro}
+Asegurado DNI: ${result.asegurado.DNI}
+Bien ID: ${result.bien.idBien}
+Tipo: auto`);
+    closeModal();
+  } catch (err) {
+    alert('No se pudo crear la solicitud: ' + (err?.message || err));
+  } finally {
+    btn.disabled = false; btn.textContent = 'Confirmar';
+  }
+});
 
-    userBaja.addEventListener('click', () => {
-        const id = prompt('Ingrese el idSeguro que desea dar de baja:');
-        if (!id) return;
-        if (!confirm('Confirma la baja del seguro ' + id + '?')) return;
-        (async () => {
-            try {
-                await window.segurosAPI.deleteSeguro(parseInt(id,10));
-                alert('Solicitud de baja procesada (el seguro fue eliminado).');
-            } catch (err) {
-                alert('Error al solicitar baja: ' + err.message);
-            }
-        })();
-    });
 
-    userCancelBtn.addEventListener('click', () => {
-        userModal.style.display = 'none';
-        userModalMsg.textContent = '';
-    });
+  
+  function avanzarAsegurado() {
+  const anio    = document.getElementById('autoAnio').value.trim();
+  const marca   = document.getElementById('autoMarca').value.trim();
+  const modelo  = document.getElementById('autoModelo').value.trim();
+  const version = document.getElementById('autoVersion').value.trim();
+  const gnc     = (form.querySelector('input[name="autoGNC"]:checked')?.value || '');
 
-    userForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const asegurado = parseInt(document.getElementById('userAsegurado').value,10);
-        const nroPoliza = document.getElementById('userNroPoliza').value ? parseInt(document.getElementById('userNroPoliza').value,10) : null;
-        const fechaFinVal = document.getElementById('userFechaFin').value;
-        const fechaFin = fechaFinVal ? new Date(fechaFinVal).toISOString() : null;
-        userModalMsg.textContent = 'Enviando...';
-        try {
-            if (userModalTitle.textContent.startsWith('Modificar')) {
-                // For simplicity require the user to enter the id in the Nro Póliza field
-                const idToUpdate = parseInt(prompt('Ingrese idSeguro a modificar:'),10);
-                if (!idToUpdate) throw new Error('id invalido');
-                await window.segurosAPI.updateSeguro(idToUpdate, { asegurado, nroPoliza, fechaFin });
-                userModalMsg.textContent = 'Modificación enviada';
-            } else {
-                const res = await window.segurosAPI.createSolicitud({ asegurado, nroPoliza, fechaFin });
-                console.debug('[UI] createSolicitud response', res);
-                userModalMsg.textContent = 'Solicitud de seguro enviada';
-            }
-            setTimeout(() => { userModal.style.display = 'none'; userModalMsg.textContent = ''; }, 900);
-        } catch (err) {
-            userModalMsg.textContent = 'Error: ' + err.message;
-            userModalMsg.style.color = 'crimson';
-        }
-    });
-    </script>
+  if (!anio || !marca || !modelo || !version || !gnc) {
+    alert('Completá año, marca, modelo, versión y si tiene GNC.');
+    return false;
+  }
+  form.dataset.autoPayload = JSON.stringify({
+    anio, marca, modelo, version, gnc,
+    usoParticular: document.getElementById('autoUsoParticular').checked
+  });
+
+  title.textContent = 'Datos del asegurado';
+  stepSelect.style.display = 'none';
+  stepAuto.style.display   = 'none';
+  stepAseg.style.display   = 'grid';
+  return true;
+};
+btnAsegurado.addEventListener('click', avanzarAsegurado);
+</script>
+<script src="seguros.js"></script>
+
+
+
+
 </body>
 </html>
