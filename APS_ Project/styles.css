@@ -1146,3 +1146,140 @@ body.panel-empleado {
     border-radius: 5px;
     color: #8899b3;
 }
+/* ===================================
+   Estilos Generales para Modales (Base Modal)
+   =================================== */
+
+/* El fondo oscuro (overlay) */
+.modal-overlay {
+    display: none; /* Se activa con JS a 'flex' */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+/* El contenedor blanco genérico */
+.modal-content {
+    background: #fff;
+    color: #333; /* Texto oscuro para fondo blanco */
+    padding: 1.5em 2em;
+    width: 420px;
+    max-width: 95%;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Título genérico del modal (el "base") */
+.modal-content h3 {
+    margin-top: 0;
+    margin-bottom: 1em;
+    color: #0b3349; /* Color base (azul oscuro) */
+    border-bottom: 1px solid #eee;
+    padding-bottom: .5em;
+}
+
+/* Contenedor de botones al final del modal */
+.modal-actions {
+    margin-top: 1.5em;
+    display: flex;
+    gap: .7em;
+    justify-content: flex-end;
+}
+
+/* Mensaje de feedback (error/éxito) */
+.modal-msg {
+    margin-top: .8em;
+    text-align: right;
+    font-weight: 500;
+}
+
+/* ===================================
+   Sobreescrituras (Overrides)
+   =================================== */
+
+/* --- Estilos específicos del Modal de BAJA --- */
+
+/* Aquí sobreescribimos el color del título SOLO para bajaModal */
+#bajaModal .modal-content h3 {
+    color: #dc3545; /* Color rojo de peligro */
+}
+
+/* Resto de estilos específicos de bajaModal */
+#bajaForm {
+    display: flex;
+    flex-direction: column;
+    gap: .8em;
+}
+#bajaForm p {
+    color: #555;
+    font-size: 0.9em;
+    margin: 0;
+}
+#bajaForm label {
+    font-weight: 600;
+    margin-bottom: -5px;
+    margin-top: .5em;
+}
+#bajaIdInput {
+    padding: 0.6em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+#bajaCancelBtn {
+    background: #f0f0f0;
+    color: #333;
+    border: 1px solid #ccc;
+}
+#bajaCancelBtn:hover {
+    background: #e0e0e0;
+}
+
+/* --- Estilos específicos del Modal de SOLICITAR --- */
+/* (Inputs y labels para el formulario multi-paso) */
+
+#userFormSeguro label {
+    display: block;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: .25rem;
+}
+
+#userFormSeguro input[type="text"],
+#userFormSeguro input[type="number"] {
+    width: 100%;
+    padding: 0.6em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; 
+}
+
+/* ===================================
+   Corrección: Botones en Modales Claros
+   =================================== */
+/*
+ * Arregla los botones 'secondary' (Asegurar hogar, etc.) 
+ * y 'cancel' para que sean visibles sobre el fondo blanco del modal.
+*/
+.modal-content .btn-secondary,
+.modal-content #userCancelBtn {
+    background: #f0f0f0;  /* Fondo gris claro (como tu otro botón de cancelar) */
+    color: #333;       /* Texto oscuro */
+    border: 1px solid #ccc;
+}
+/*
+ * Hover: Mantenemos el efecto hover ORIGINAL 
+ * (fondo cyan y texto blanco).
+*/
+.modal-content .btn-secondary:hover,
+.modal-content .btn-secondary:focus,
+.modal-content #userCancelBtn:hover {
+    background: var(--color-primary); /* Vuelve al color cyan original (#4cb5d5) */
+    color: #fff;                     /* Vuelve al texto blanco original */
+    border-color: var(--color-primary); /* Oculta el borde gris al hacer hover */
+}
