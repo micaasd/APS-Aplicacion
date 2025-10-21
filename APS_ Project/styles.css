@@ -1210,8 +1210,16 @@ body.panel-empleado {
     color: #dc3545; /* Color rojo de peligro */
 }
 
+/* Título rojo para el modal de "Eliminar Seguro" del panel de empleado */
+#selectSeguroModal .modal-content h3 {
+    color: #dc3545; /* Color rojo de peligro */
+}
+
 /* Resto de estilos específicos de bajaModal */
-#bajaForm {
+/* AÑADIDOS #formSeguro y #selectForm para que compartan layout */
+#bajaForm, 
+#formSeguro,
+#selectForm {
     display: flex;
     flex-direction: column;
     gap: .8em;
@@ -1243,20 +1251,38 @@ body.panel-empleado {
 /* --- Estilos específicos del Modal de SOLICITAR --- */
 /* (Inputs y labels para el formulario multi-paso) */
 
-#userFormSeguro label {
+/* REGLA GENERALIZADA */
+.modal-content form label {
     display: block;
     font-weight: 600;
     color: #444;
     margin-bottom: .25rem;
 }
 
-#userFormSeguro input[type="text"],
-#userFormSeguro input[type="number"] {
+/* REGLA GENERALIZADA (y expandida) */
+.modal-content form input[type="text"],
+.modal-content form input[type="number"],
+.modal-content form input[type="email"],
+.modal-content form input[type="password"],
+.modal-content form input[type="datetime-local"] {
     width: 100%;
     padding: 0.6em;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box; 
+}
+
+/* NUEVA REGLA para <select> */
+.modal-content form select {
+    width: 100%;
+    padding: 0.6em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: #fff;
+    color: #333;
+    font-size: var(--font-size-base);
+    font-family: var(--font-base);
 }
 
 /* ===================================

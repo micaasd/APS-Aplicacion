@@ -43,8 +43,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <!-- filas generadas por JS -->
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -76,9 +75,9 @@
             <p>&copy; 2025 Seguros Grupo Amarillo. Todos los derechos reservados.</p>
         </div>
     </footer>
-    <!-- Add/Edit Modal -->
-    <div id="seguroModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5);">
-        <div style="background:#fff; margin:6% auto; padding:1.5em; width:420px; max-width:95%; border-radius:8px;">
+    
+    <div id="seguroModal" class="modal-overlay">
+        <div class="modal-content">
             <h3 id="modalTitle">Agregar Seguro</h3>
             <form id="formSeguro">
                 <input type="hidden" id="idSeguro">
@@ -88,12 +87,13 @@
                 <input type="number" id="nroPoliza">
                 <label for="fechaFin">Fecha Fin (opcional):</label>
                 <input type="datetime-local" id="fechaFin">
-                <div style="margin-top:1em; display:flex; gap:.5em;">
+                
+                <div class="modal-actions">
                     <button type="submit" class="btn btn-primary">Guardar</button>
                     <button type="button" id="cancelBtn" class="btn">Cancelar</button>
                 </div>
             </form>
-            <div id="modalMsg" style="margin-top:.5em;"></div>
+            <div id="modalMsg" class="modal-msg"></div>
         </div>
     </div>
 
@@ -145,12 +145,13 @@
         formSeguro.reset();
         modalTitle.textContent = 'Agregar Seguro';
         document.getElementById('idSeguro').value = '';
-        seguroModal.style.display = 'block';
+        seguroModal.style.display = 'flex'; // Usar flex para centrar
     });
 
     cancelBtn.addEventListener('click', () => {
         seguroModal.style.display = 'none';
         modalMsg.textContent = '';
+        modalMsg.style.color = ''; // Resetear color
     });
 
     segurosTableBody.addEventListener('click', async (e) => {
@@ -169,7 +170,7 @@
                 document.getElementById('nroPoliza').value = s.nroPoliza ?? '';
                 document.getElementById('fechaFin').value = s.fechaFin ? new Date(s.fechaFin).toISOString().slice(0,16) : '';
                 modalTitle.textContent = 'Editar Seguro ' + s.idSeguro;
-                seguroModal.style.display = 'block';
+                seguroModal.style.display = 'flex'; // Usar flex
             } catch (err) {
                 alert('Error: ' + err.message);
             }
@@ -198,7 +199,10 @@
         const nroPoliza = document.getElementById('nroPoliza').value ? parseInt(document.getElementById('nroPoliza').value,10) : null;
         const fechaFinVal = document.getElementById('fechaFin').value;
         const fechaFin = fechaFinVal ? new Date(fechaFinVal).toISOString() : null;
+        
         modalMsg.textContent = 'Guardando...';
+        modalMsg.style.color = ''; // Resetear color
+
         try {
             if (id) {
                 const res = await window.segurosAPI.updateSeguro(parseInt(id,10), { asegurado, nroPoliza, fechaFin });
@@ -209,9 +213,12 @@
                 console.debug('[UI] createSeguro response', res);
                 modalMsg.textContent = 'Creado correctamente';
             }
+            modalMsg.style.color = 'green';
+
             setTimeout(async () => {
                 seguroModal.style.display = 'none';
                 modalMsg.textContent = '';
+                modalMsg.style.color = '';
                 await loadSeguros();
             }, 900);
         } catch (err) {
@@ -223,25 +230,26 @@
     
     loadSeguros();
     
-    
+    // --- HTML para el modal de selección (AHORA CON CLASES CSS) ---
     const selectModalHtml = `
-        <div style="background:#fff; margin:8% auto; padding:1em; width:420px; max-width:95%; border-radius:8px;">
+        <div class="modal-content">
             <h3 id="selectModalTitle">Seleccionar Seguro</h3>
-            <div>
+            <form id="selectForm">
                 <label for="selectSeguro">Seguro:</label>
-                <select id="selectSeguro" style="width:100%; padding:.4em; margin-bottom:.6em;"></select>
+                <select id="selectSeguro"></select>
+            </form>
+            <div id="selectModalMsg" class="modal-msg"></div>
+            <div class="modal-actions">
+                <button type="button" id="selectCancelBtn" class="btn">Cancelar</button>
+                <button type="button" id="selectConfirmBtn" class="btn btn-primary">Confirmar</button>
             </div>
-            <div style="display:flex; gap:.5em; justify-content:flex-end;">
-                <button id="selectCancelBtn" class="btn">Cancelar</button>
-                <button id="selectConfirmBtn" class="btn btn-primary">Confirmar</button>
-            </div>
-            <div id="selectModalMsg" style="margin-top:.5em;"></div>
         </div>`;
 
     
     const selectModalContainer = document.createElement('div');
     selectModalContainer.id = 'selectSeguroModal';
-    selectModalContainer.style = 'display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.5);';
+    // --- USA CLASE CSS EN LUGAR DE ESTILO EN LÍNEA ---
+    selectModalContainer.className = 'modal-overlay';
     selectModalContainer.innerHTML = selectModalHtml;
     document.body.appendChild(selectModalContainer);
 
@@ -279,17 +287,29 @@
         const confirmBtn = document.getElementById('selectConfirmBtn');
         const cancelBtn = document.getElementById('selectCancelBtn');
         const msg = document.getElementById('selectModalMsg');
+        
         title.textContent = mode === 'delete' ? 'Eliminar Seguro' : 'Modificar Seguro';
         confirmBtn.textContent = mode === 'delete' ? 'Eliminar' : 'Modificar';
+        
+        // --- APLICA EL ESTILO DANGER AL BOTÓN ---
+        if (mode === 'delete') {
+            confirmBtn.classList.add('btn-danger');
+            confirmBtn.classList.remove('btn-primary');
+        } else {
+            confirmBtn.classList.add('btn-primary');
+            confirmBtn.classList.remove('btn-danger');
+        }
+        
         msg.textContent = '';
+        msg.style.color = ''; // Resetear color
         populateSelectSeguro();
-        container.style.display = 'block';
+        container.style.display = 'flex'; // Usar flex
 
         cancelBtn.onclick = () => { container.style.display = 'none'; };
         confirmBtn.onclick = async () => {
             const sel = document.getElementById('selectSeguro');
             const id = sel.value;
-            if (!id) { msg.textContent = 'Seleccione un seguro.'; return; }
+            if (!id) { msg.textContent = 'Seleccione un seguro.'; msg.style.color = 'crimson'; return; }
             if (mode === 'delete') {
                 if (!confirm('Confirma eliminar el seguro ' + id + '?')) return;
                 try {
@@ -298,9 +318,14 @@
                     const res = await window.segurosAPI.deleteSeguro(numericId);
                     console.debug('[UI] modal delete result', res);
                     msg.textContent = 'Eliminado correctamente.';
+                    msg.style.color = 'green';
                     await loadSeguros();
                     setTimeout(() => { container.style.display = 'none'; }, 700);
-                } catch (err) { console.error(err); msg.textContent = 'Error: ' + (err.message || JSON.stringify(err)); }
+                } catch (err) { 
+                    console.error(err); 
+                    msg.textContent = 'Error: ' + (err.message || JSON.stringify(err));
+                    msg.style.color = 'crimson';
+                }
             } else {
                 // load seleccion into edit modal
                 try {
@@ -313,8 +338,8 @@
                     document.getElementById('fechaFin').value = s.fechaFin ? new Date(s.fechaFin).toISOString().slice(0,16) : '';
                     modalTitle.textContent = 'Editar Seguro ' + s.idSeguro;
                     container.style.display = 'none';
-                    seguroModal.style.display = 'block';
-                } catch (err) { msg.textContent = 'Error: ' + err.message; }
+                    seguroModal.style.display = 'flex'; // Usar flex
+                } catch (err) { msg.textContent = 'Error: ' + err.message; msg.style.color = 'crimson';}
             }
         };
     }
