@@ -106,10 +106,184 @@ const btnPagarTarjeta = document.getElementById("btnPagarTarjeta");
 const btnPagarQR = document.getElementById("btnPagarQR");
 const btnCancelarPago = document.getElementById("btnCancelarPago");
 
-userPagar.addEventListener("click", () => {
-  // Mostrar el modal de pago
+// --- Pago: elegir seguro y crear registro en Pago ---
+const selectSeguroAPagar = document.getElementById("selectSeguroAPagar");
+const btnContinuarPago   = document.getElementById("btnContinuarPago");
+const metodosPago        = document.getElementById("metodosPago");
+const seguroCargando     = document.getElementById("seguroCargando");
+const seguroError        = document.getElementById("seguroError");
+
+let pagoActual = null; // { idPago, idSeguro }
+
+// Aseguramos que exista un cliente de Supabase (puede venir de seguros.js)
+const _SUPABASE = typeof supabase !== "undefined" ? supabase :
+  window.supabase?.createClient?.(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+
+// Cargar lista de seguros
+async function cargarSegurosParaPagar() {
+  const _SUPABASE = window._SUPABASE_CLIENT;
+  if (!_SUPABASE) {
+    console.warn("Supabase no configurado. Definí SUPABASE_URL/ANON_KEY o el cliente global.");
+    return [];
+  }
+  seguroError.style.display = "none";
+  seguroCargando.style.display = "block";
+  try {
+    // TODO: si tenés RLS por usuario, filtrá por userId actual
+    const { data, error } = await _SUPABASE.from("Seguro")
+      .select("idSeguro, asegurado, nroPoliza")
+      .order("idSeguro", { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+  // Log detallado en consola
+  console.groupCollapsed("Error cargando seguros");
+  console.error(e);
+  if (e && (e.code || e.message || e.details || e.hint)) {
+    console.table({
+      code: e.code || null,
+      message: e.message || null,
+      details: e.details || null,
+      hint: e.hint || null,
+    });
+  }
+  console.groupEnd();
+
+  // Mensaje visible para el usuario
+  const partes = [
+    e?.message && `Mensaje: ${e.message}`,
+    e?.details && `Detalles: ${e.details}`,
+    e?.hint && `Sugerencia: ${e.hint}`,
+    e?.code && `Código: ${e.code}`,
+  ].filter(Boolean);
+
+  seguroError.textContent =
+    partes.join(" · ") || "No se pudieron cargar los seguros.";
+  seguroError.style.display = "block";
+
+  return [];
+} finally {
+    seguroCargando.style.display = "none";
+  }
+}
+
+// Poblar el <select> con los seguros
+function poblarSelectSeguros(lista) {
+  selectSeguroAPagar.innerHTML = "";
+  const optVacia = document.createElement("option");
+  optVacia.value = "";
+  optVacia.textContent = "Seleccioná un seguro...";
+  selectSeguroAPagar.appendChild(optVacia);
+  for (const s of lista) {
+    const opt = document.createElement("option");
+    opt.value = String(s.idSeguro);
+    const desc = [s.nombre, s.tipo].filter(Boolean).join(" – ");
+    const costo = (s.costo != null) ? ` ($${s.costo})` : "";
+    opt.textContent = `#${s.idSeguro} ${desc}${costo}`;
+    selectSeguroAPagar.appendChild(opt);
+  }
+}
+
+// Cuando se abre el modal de pago: primero elegir seguro
+userPagar.addEventListener("click", async () => {
+  pagoActual = null;
+  metodosPago.style.display = "none";
+  btnContinuarPago.disabled = true;
+  selectSeguroAPagar.disabled = true;
   pagoModal.style.display = "flex";
+  const lista = await cargarSegurosParaPagar();
+  poblarSelectSeguros(lista);
+  selectSeguroAPagar.disabled = false;
 });
+
+// Habilitar continuar cuando haya selección
+selectSeguroAPagar?.addEventListener("change", () => {
+  btnContinuarPago.disabled = !selectSeguroAPagar.value;
+});
+
+// Crear registro en Pago y mostrar métodos
+btnContinuarPago?.addEventListener("click", async () => {
+  const idSeguroSel = Number(selectSeguroAPagar.value);
+  if (!idSeguroSel) return;
+
+  if (!_SUPABASE) {
+    alert("No hay cliente Supabase configurado.");
+    return;
+  }
+
+  // Fecha actual en formato YYYY-MM-DD
+  const hoy = new Date();
+  const fechaISO = hoy.toISOString().slice(0, 10);
+
+  try {
+    const _SUPABASE = window._SUPABASE_CLIENT;
+    const { data, error } = await _SUPABASE
+      .from("Pago")
+      .insert({
+        fechaPago: fechaISO,
+        idSeguro: idSeguroSel,
+        estado: "iniciado",
+        metodoPago: null,
+        costo: null
+      })
+      .select("idPago, idSeguro")
+      .single();
+
+    if (error) throw error;
+    pagoActual = data;
+    // Guardar contexto para las pantallas de pago
+    sessionStorage.setItem("pagoActual", JSON.stringify(pagoActual));
+
+    // Ahora mostramos los métodos
+    metodosPago.style.display = "block";
+    // y deshabilitamos la selección para evitar cambios
+    selectSeguroAPagar.disabled = true;
+    btnContinuarPago.disabled = true;
+  } catch (e) {
+  // Log detallado en consola
+  console.groupCollapsed("Error cargando el pago");
+  console.error(e);
+  if (e && (e.code || e.message || e.details || e.hint)) {
+    console.table({
+      code: e.code || null,
+      message: e.message || null,
+      details: e.details || null,
+      hint: e.hint || null,
+    });
+  }
+  console.groupEnd();
+
+  // Mensaje visible para el usuario
+  const partes = [
+    e?.message && `Mensaje: ${e.message}`,
+    e?.details && `Detalles: ${e.details}`,
+    e?.hint && `Sugerencia: ${e.hint}`,
+    e?.code && `Código: ${e.code}`,
+  ].filter(Boolean);
+
+  seguroError.textContent =
+    partes.join(" · ") || "No se pudo cargar el pago.";
+  seguroError.style.display = "block";
+
+  return [];
+} finally {
+    seguroCargando.style.display = "none";
+  }
+});
+
+// Redirecciones conservando el contexto de pago
+if (typeof btnPagarTarjeta !== "undefined") {
+  btnPagarTarjeta.addEventListener("click", () => {
+    const q = pagoActual ? `?pagoId=${pagoActual.idPago}&seguroId=${pagoActual.idSeguro}` : "";
+    window.location.href = "pagoTarjeta.html" + q;
+  });
+}
+if (typeof btnPagarQR !== "undefined") {
+  btnPagarQR.addEventListener("click", () => {
+    const q = pagoActual ? `?pagoId=${pagoActual.idPago}&seguroId=${pagoActual.idSeguro}` : "";
+    window.location.href = "pagoQr.html" + q;
+  });
+}
 
 // Cerrar modal
 btnCancelarPago.addEventListener("click", () => {

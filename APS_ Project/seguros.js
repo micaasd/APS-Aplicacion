@@ -7,7 +7,9 @@ const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZoa3Via25xa252cW1ocGdybGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkxNjg5NjUsImV4cCI6MjA3NDc0NDk2NX0.Mi0a3OqjFWkKoMqhAEfZyOaruoXeesFiaGavafk5yUQ';
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+//publica la constante para que otros scripts puedan usarla
+window.supabaseClient = supabaseClient;
+window._SUPABASE_CLIENT = supabaseClient; // alias por si mi código lo busca con este nombre
 // -----------------------------------------------
 // Utils
 async function must(ok, msg) {
