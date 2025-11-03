@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pago con QR</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f7f9fc;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: #333;
+      }
+
+      /* Animación de carga */
+      .loader {
+        border: 6px solid #eee;
+        border-top: 6px solid #007bff;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 1s linear infinite;
+        margin: 1rem auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-text {
+        color: #555;
+        font-weight: 500;
+        margin-top: 0.5rem;
+        text-align: center;
+        animation: blink 1.5s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      #qrContainer {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 1.5rem;
+      }
+
+      #qrCode {
+        margin-top: 1rem;
+        background: white;
+        padding: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .btn-volver {
+        margin-top: 1.5rem;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .btn-volver:hover {
+        background-color: #005fcc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Generando tu código QR...</h1>
+
+    <div id="loadingSection">
+      <div class="loader"></div>
+      <p class="loading-text">Cargando...</p>
+    </div>
+
+    <div id="qrContainer">
+      <h2>Escaneá este código para pagar</h2>
+      <div id="qrCode"></div>
+
+      <button
+        class="btn-volver"
+        onclick="window.location.href='panelUsuario.html'"
+      >
+        Volver al panel
+      </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+      setTimeout(() => {
+        document.getElementById("loadingSection").style.display = "none";
+        const qrContainer = document.getElementById("qrContainer");
+        qrContainer.style.display = "flex";
+
+        // Crear un nuevo QRCode en un contenedor div
+        const qrDiv = document.getElementById("qrCode");
+        const pagoID = Math.floor(Math.random() * 1000000);
+        const data = `https://grupoamarillo-pagos.com/pago?id=${pagoID}`;
+
+        // Usando la versión clásica del script (qrcodejs)
+        new QRCode(qrDiv, {
+          text: data,
+          width: 220,
+          height: 220,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.H,
+        });
+      }, 2500);
+    </script>
+  </body>
+</html>

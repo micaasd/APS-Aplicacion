@@ -125,7 +125,7 @@ btnPagarTarjeta.addEventListener("click", () => {
 // Elegir pago con QR
 btnPagarQR.addEventListener("click", () => {
   console.log("Redirigiendo al pago con QR...");
-  window.location.href = "pago-qr.html";
+  window.location.href = "pagoQr.html";
 });
 
 // --- Paso 2: volver/cancelar ---
