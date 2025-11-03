@@ -1309,3 +1309,21 @@ body.panel-empleado {
     color: #fff;                     /* Vuelve al texto blanco original */
     border-color: var(--color-primary); /* Oculta el borde gris al hacer hover */
 }
+
+/* Centrado sólido del modal en todos los navegadores */
+dialog#dlgEmpleado[open] {
+  position: fixed;     /* ignora el flujo del layout */
+  inset: 50% auto auto 50%; /* top/left al 50% de la pantalla */
+  transform: translate(-50%, -50%); /* lo trae exacto al centro */
+  margin: 0;           /* evita que el margin afecte el centrado */
+  max-width: 520px;
+  width: min(92vw, 520px);
+  border: 0;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+}
+
+/* backdrop más notorio */
+dialog#dlgEmpleado::backdrop {
+  background: rgba(0,0,0,.45);
+}
