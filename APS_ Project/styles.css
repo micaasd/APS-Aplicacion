@@ -1327,3 +1327,210 @@ dialog#dlgEmpleado[open] {
 dialog#dlgEmpleado::backdrop {
   background: rgba(0,0,0,.45);
 }
+
+/* ===================================
+   Panel Adminitrador - Tablas
+   =================================== */
+
+.tabla-container {
+  overflow-x: auto; /* Permite scroll horizontal si la tabla es muy ancha */
+  margin-bottom: var(--spacing-md);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse; /* Elimina los dobles bordes */
+  font-size: var(--font-size-sm);
+  /* Fondo general más oscuro que el panel para contraste */
+  background-color: #081023; 
+  border-radius: var(--radius-sm);
+  overflow: hidden; /* Asegura que los bordes redondeados funcionen bien */
+}
+
+.data-table thead tr {
+  background-color: var(--color-primary-dark); /* Fondo oscuro para el encabezado */
+  color: var(--color-text-primary);
+}
+
+.data-table th, 
+.data-table td {
+  padding: 0.75rem 1rem; /* Aumento de padding para más espacio */
+  text-align: left;
+  border-bottom: 1px solid #1a2a47; /* Separador de fila sutil */
+  white-space: nowrap; /* Evita que los encabezados o datos se partan */
+}
+
+.data-table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.8rem;
+  color: var(--color-primary-light);
+}
+
+.data-table tbody tr {
+  transition: background-color var(--transition-fast);
+}
+
+/* Efecto hover en filas para destacar */
+.data-table tbody tr:hover {
+  background-color: #121f3a; 
+}
+
+/* Colores de texto para mejor distinción de datos */
+.data-table td {
+  color: var(--color-text-secondary);
+}
+.data-table td:nth-child(2) { /* Nombre completo */
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+.data-table td:nth-child(8) { /* Columna Estado (para 'Activo'/'Inactivo') */
+    font-weight: 600;
+    color: #4ade80; /* Color verde para estado activo */
+}
+
+/* Estilo para la columna de acciones (para centrar si es necesario, aunque en este caso no lo hacemos) */
+.data-table td:last-child {
+  text-align: center;
+}
+
+/* Estilo para los botones dentro de la tabla */
+.data-table .btn-small {
+  margin: 0 0.15rem; /* Pequeño margen entre botones */
+}
+
+/* [Opcional: Estilo Zebra para filas] */
+.data-table tbody tr:nth-child(even) {
+  background-color: #0b1528;
+}
+.data-table tbody tr:hover:nth-child(even) {
+  background-color: #121f3a;
+}
+
+/* ===================================
+   Panel Empleado - Modal (Dialog) - TEMA CLARO
+   =================================== */
+
+/* 1. Contenedor principal del modal (fondo blanco, texto oscuro) */
+dialog#dlgEmpleado {
+  background: #ffffff;
+  color: #1f2937; /* Color de texto oscuro por defecto */
+  border-radius: var(--radius-lg);
+  border: 1px solid #e5e7eb; /* Borde gris claro */
+  box-shadow: var(--shadow-lg);
+  padding: var(--spacing-xl);
+  max-width: 520px;
+  width: min(92vw, 520px);
+}
+
+/* 2. Fondo oscuro (overlay) detrás del modal */
+dialog#dlgEmpleado::backdrop {
+  background: rgba(10, 14, 39, 0.6); 
+  backdrop-filter: blur(5px);
+}
+
+/* 3. Título del modal (oscuro) */
+dialog#dlgEmpleado h3 {
+  margin-top: 0;
+  margin-bottom: var(--spacing-lg);
+  color: #111827; /* Título bien oscuro */
+  font-size: var(--font-size-xl);
+  border-bottom: 1px solid #e5e7eb; /* Separador gris */
+  padding-bottom: var(--spacing-sm);
+}
+
+/* 4. Grilla del formulario */
+dialog#dlgEmpleado .form-grid {
+  display: grid;
+  gap: var(--spacing-md);
+  grid-template-columns: 1fr 1fr;
+}
+
+dialog#dlgEmpleado .form-grid .full {
+  grid-column: 1 / -1;
+}
+
+/* 5. Etiquetas (Labels) (oscuras) */
+dialog#dlgEmpleado .field label {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-bottom: var(--spacing-xs);
+  color: #4b5563; /* Texto gris oscuro para etiquetas */
+  opacity: 1; /* Asegura que no sea transparente */
+}
+
+/* 6. Inputs (Fondo blanco, borde y texto oscuros) */
+dialog#dlgEmpleado .field input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: 2px solid #d1d5db; /* Borde gris */
+  background: #ffffff; /* Fondo blanco */
+  color: #111827; /* !! IMPORTANTE: Texto oscuro (al escribir) */
+  font-size: var(--font-size-base);
+  transition: all var(--transition-fast);
+}
+
+/* 7. Texto del Placeholder (gris claro) */
+dialog#dlgEmpleado .field input::placeholder {
+  color: #9ca3af; /* Placeholder gris claro */
+  opacity: 1;
+}
+
+/* 8. Estilo al seleccionar un input (Focus) */
+dialog#dlgEmpleado .field input:focus {
+  border-color: var(--color-primary); /* Borde azul (de tu tema) al enfocar */
+  box-shadow: 0 0 0 3px rgba(76, 181, 213, 0.1);
+  outline: none;
+}
+
+/* 9. Texto de error */
+dialog#dlgEmpleado .error-text {
+  color: #ff6b6b; /* El rojo se mantiene para errores */
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-xs);
+  min-height: 1.2em;
+}
+
+/* 10. Contenedor de botones (Cancelar, Guardar) */
+dialog#dlgEmpleado .modal-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: flex-end;
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid #e5e7eb; /* Separador gris */
+}
+
+/* 11. Arreglo para el botón "Cancelar" (btn-secondary) en fondo blanco */
+dialog#dlgEmpleado .btn-secondary {
+  background: #f3f4f6;  /* Fondo gris muy claro (casi blanco) */
+  color: #374151;       /* Texto gris oscuro */
+  border: 1px solid #d1d5db; /* Borde gris */
+  box-shadow: none; /* Quitamos sombra si la tuviera */
+}
+
+/* 12. Hover del botón "Cancelar" */
+dialog#dlgEmpleado .btn-secondary:hover {
+  background: #e5e7eb; /* Fondo gris un poco más oscuro */
+  color: #1f2937;
+  border-color: #d1d5db;
+  transform: translateY(0); /* Anulamos el efecto de 'subir' */
+}
+
+/* ===================================
+   Panel Adminitrador - Ajustes Específicos
+   =================================== */
+
+/* Reduce el tamaño de los botones "Refrescar" y "Añadir" en el panel de empleados */
+#panel-empleados .cta-group .btn {
+  /* Reducimos el padding para que sean más compactos */
+  padding: 0.75rem 1.25rem;
+  
+  /* Ajustamos la fuente para que coincida con el nuevo tamaño */
+  font-size: 0.9rem; 
+  font-weight: 500;
+}
+
