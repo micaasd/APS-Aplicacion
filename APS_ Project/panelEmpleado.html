@@ -27,47 +27,59 @@
     </header>
 
     <main class="main-content">
-    <div class="admin-container">
-        
-        <div class="panel-visualizacion">
-            <h2>Seguros Activos</h2>
-            <div class="tabla-container">
-                <table id="segurosTable" class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>DNI Asegurado</th>
-                            <th>Nro Póliza</th>
-                            <th>Fecha Inicio</th>
-                            <th>Fecha Fin</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="panel-solicitudes" style="margin-top:2rem;">
-            <h2>Solicitudes Pendientes</h2>
-            <div id="solicitudesContainer">
-                <p>Cargando solicitudes...</p>
-            </div>
-        </div>
-
-        <div class="panel-acciones">
-            <h2>Acciones</h2>
-                <div class="cta-group">
-                    <button id="btnRefresh" class="btn btn-secondary">Refrescar</button>
-                    <button id="btnAddSeguro" class="btn btn-primary">Agregar Seguro</button>
-                    <button id="btnUpdateAll" class="btn btn-secondary">Actualizar Seguros</button>
-                    <button id="btnSelectDelete" class="btn btn-danger">Eliminar Seguro</button>
-                    <button id="btnSelectModify" class="btn btn-secondary">Modificar Seguro</button>
+        <div class="admin-container">
+            <div class="columna-paneles"> 
+                <div class="panel-visualizacion">
+                    <h2>Seguros Activos</h2>
+                    <div class="tabla-container">
+                        <table id="segurosTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>DNI Asegurado</th>
+                                    <th>Nro Póliza</th>
+                                    <th>Fecha Inicio</th>
+                                    <th>Fecha Fin</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                </tbody>
+                        </table>
+                    </div>
                 </div>
-        </div>
 
-    </div>
+            <div class="panel-solicitudes">
+                        <h2>Solicitudes Pendientes</h2>
+                        <div class="tabla-container">
+                            <table id="solicitudesTable" class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>DNI Asegurado</th>
+                                        <th>Nro Póliza</th>
+                                        <th>Fecha Fin</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="solicitudesBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+             </div><div class="panel-acciones">
+                <h2>Acciones</h2>
+                    <div class="cta-group">
+                        <button id="btnRefresh" class="btn btn-secondary">Refrescar</button>
+                        <button id="btnAddSeguro" class="btn btn-primary">Agregar Seguro</button>
+                        <button id="btnUpdateAll" class="btn btn-secondary">Actualizar Seguros</button>
+                        <button id="btnSelectDelete" class="btn btn-danger">Eliminar Seguro</button>
+                        <button id="btnSelectModify" class="btn btn-secondary">Modificar Seguro</button>
+                    </div>
+            </div>
+
+        </div>
     </main>
 
 
@@ -229,7 +241,7 @@
     });
 
     
-    loadSeguros();
+    //loadSeguros();
     
     // --- HTML para el modal de selección (AHORA CON CLASES CSS) ---
     const selectModalHtml = `
@@ -349,28 +361,30 @@
     btnSelectModify.addEventListener('click', () => openSelectModal('modify'));
     btnUpdateAll.addEventListener('click', async () => { await loadSeguros(); alert('Actualizado'); });
 
-    //Manejo de solicitudes (futuro)
-    const solicitudesContainer = document.getElementById('solicitudesContainer');
+    //Manejo de solicitudes - ACTUALIZADO
+    const solicitudesBody = document.getElementById('solicitudesBody');
 
     async function loadSolicitudes() {
         try {
+            // Estado de carga en la tabla
+            solicitudesBody.innerHTML = '<tr><td colspan="5">Cargando solicitudes...</td></tr>';
+            
             const solicitudes = await window.segurosAPI.fetchSolicitudes();
+            
             if (!solicitudes || solicitudes.length === 0) {
-                solicitudesContainer.innerHTML = '<p>No hay solicitudes pendientes.</p>';
+                // Mensaje de "no hay" en la tabla
+                solicitudesBody.innerHTML = '<tr><td colspan="5">No hay solicitudes pendientes.</td></tr>';
                 return;
             }
-            const list = document.createElement('ul');
-            list.style.listStyle = 'none';
-            list.style.padding = '0';
+
+            solicitudesBody.innerHTML = ''; // Limpiar "Cargando..."
+            
             solicitudes.forEach(s => {
-                const li = document.createElement('li');
-                li.style.padding = '.6em 0';
-                li.style.display = 'flex';
-                li.style.justifyContent = 'space-between';
-                li.style.alignItems = 'center';
-                li.innerHTML = `<div>Solicitud #${s.id} — DNI:${s.asegurado} — Pol:${s.nroPoliza ?? ''} — FechaFin:${s.fechaFin ?? ''}</div>`;
+                const tr = document.createElement('tr');
+
+                // Crear el botón de acción
                 const btn = document.createElement('button');
-                btn.className = 'btn btn-primary';
+                btn.className = 'btn btn-small btn-primary'; // Estilo consistente
                 btn.textContent = 'Activar';
                 btn.onclick = async () => {
                     try {
@@ -386,17 +400,30 @@
                         alert('Error activando: ' + (err.message || JSON.stringify(err)));
                     }
                 };
-                li.appendChild(btn);
-                list.appendChild(li);
+                
+                // Llenar la fila con datos
+                tr.innerHTML = `
+                    <td>${s.id}</td>
+                    <td>${s.asegurado}</td>
+                    <td>${s.nroPoliza ?? ''}</td>
+                    <td>${s.fechaFin ? new Date(s.fechaFin).toLocaleString() : ''}</td>
+                    <td></td> 
+                `;
+                
+                // Añadir el botón a la última celda
+                tr.cells[4].appendChild(btn);
+                
+                solicitudesBody.appendChild(tr);
             });
-            solicitudesContainer.innerHTML = '';
-            solicitudesContainer.appendChild(list);
+            
         } catch (err) {
-            solicitudesContainer.innerHTML = '<p>Error cargando solicitudes: ' + (err.message || JSON.stringify(err)) + '</p>';
+            // Mensaje de error en la tabla
+            solicitudesBody.innerHTML = '<tr><td colspan="5">Error cargando solicitudes: ' + (err.message || JSON.stringify(err)) + '</td></tr>';
         }
     }
 
-    // load solicitudes initially and when seguros list updates
+    // Cargas iniciales
+    loadSeguros();
     loadSolicitudes();
     </script>
 </body>

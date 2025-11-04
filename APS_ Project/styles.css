@@ -1039,6 +1039,7 @@ p {
 /* Y el panel de acciones más pequeño */
 .panel-acciones {
     flex: 1; /* Ocupará 1/3 del espacio */
+    max-width: 350px;
 }
 
 /* Títulos dentro de los paneles */
@@ -1520,6 +1521,7 @@ dialog#dlgEmpleado .btn-secondary:hover {
   transform: translateY(0); /* Anulamos el efecto de 'subir' */
 }
 
+
 /* ===================================
    Panel Adminitrador - Ajustes Específicos
    =================================== */
@@ -1534,3 +1536,52 @@ dialog#dlgEmpleado .btn-secondary:hover {
   font-weight: 500;
 }
 
+/* ===================================
+   Panel Adminitrador - Layout
+   =================================== */
+
+/* * Este wrapper agrupa los paneles de la izquierda (Seguros y Solicitudes)
+ * para que se apilen verticalmente, ocupando la porción 'flex: 2' 
+ * que antes ocupaba 'panel-visualizacion' solo.
+*/
+.columna-paneles {
+  flex: 2; /* Ocupa 2/3 del espacio */
+  display: flex;
+  flex-direction: column;
+  gap: 2rem; /* Espacio entre el panel de Seguros y el de Solicitudes */
+}
+
+/* * Estilos para el nuevo panel de solicitudes.
+ * Son idénticos a .panel-visualizacion para consistencia.
+*/
+.panel-solicitudes {
+  background-color: #0c1a32;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #2a3b5c;
+}
+
+.panel-solicitudes h2 {
+  margin-top: 0;
+  border-bottom: 1px solid #2a3b5c;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+
+/* --- Estilos para Tablas Compactas --- */
+
+.data-table th,
+.data-table td {
+  /* Relleno vertical (filas más delgadas) */
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  
+  /* Opcional: Reducir relleno horizontal (columnas más juntas) */
+  padding-left: 0.6rem;
+  padding-right: 0.6rem;
+
+  /* Letra más chica */
+  font-size: 0.85rem; 
+}
